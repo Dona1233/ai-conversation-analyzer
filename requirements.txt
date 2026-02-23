@@ -1,5 +1,3 @@
-flask
+streamlit
 sentence-transformers
-nltk
 torch --index-url https://download.pytorch.org/whl/cpu
-gunicorn

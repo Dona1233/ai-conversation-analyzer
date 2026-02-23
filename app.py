@@ -69,7 +69,33 @@ def index():
         }
 
     return render_template("index.html", results=results)
-import os
+import streamlit as st
+from sentence_transformers import SentenceTransformer, util
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
+st.set_page_config(page_title="AgreeDetector", page_icon="🔍")
+st.title("🤝 AgreeDetector")
+st.write("Compare two statements to see if they align.")
+
+@st.cache_resource # This prevents the model from reloading every time
+def get_model():
+    return SentenceTransformer('all-MiniLM-L6-v2')
+
+model = get_model()
+
+col1, col2 = st.columns(2)
+with col1:
+    sent1 = st.text_area("Statement 1", "The weather is great.")
+with col2:
+    sent2 = st.text_area("Statement 2", "It is a beautiful day.")
+
+if st.button("Check Agreement"):
+    emb1 = model.encode(sent1)
+    emb2 = model.encode(sent2)
+    score = util.cos_sim(emb1, emb2).item()
+    
+    st.divider()
+    st.subheader(f"Agreement Score: {score:.2f}")
+    if score > 0.7:
+        st.success("High Agreement! ✅")
+    else:
+        st.warning("Low Agreement. ⚠️")
