@@ -72,30 +72,32 @@ def index():
 import streamlit as st
 from sentence_transformers import SentenceTransformer, util
 
-st.set_page_config(page_title="AgreeDetector", page_icon="🔍")
+# 1. Simple Header
 st.title("🤝 AgreeDetector")
-st.write("Compare two statements to see if they align.")
+st.write("Compare two sentences to see if they align using AI.")
 
-@st.cache_resource # This prevents the model from reloading every time
-def get_model():
+# 2. Load the Model (Optimized for Streamlit)
+@st.cache_resource
+def load_model():
     return SentenceTransformer('all-MiniLM-L6-v2')
 
-model = get_model()
+model = load_model()
 
-col1, col2 = st.columns(2)
-with col1:
-    sent1 = st.text_area("Statement 1", "The weather is great.")
-with col2:
-    sent2 = st.text_area("Statement 2", "It is a beautiful day.")
+# 3. User Interface
+s1 = st.text_input("First Statement", "I love coding.")
+s2 = st.text_input("Second Statement", "Programming is great.")
 
 if st.button("Check Agreement"):
-    emb1 = model.encode(sent1)
-    emb2 = model.encode(sent2)
+    # AI calculation
+    emb1 = model.encode(s1)
+    emb2 = model.encode(s2)
     score = util.cos_sim(emb1, emb2).item()
     
+    # Show results
     st.divider()
-    st.subheader(f"Agreement Score: {score:.2f}")
+    st.metric(label="Similarity Score", value=f"{score:.2f}")
+    
     if score > 0.7:
-        st.success("High Agreement! ✅")
+        st.success("They agree!")
     else:
-        st.warning("Low Agreement. ⚠️")
+        st.warning("They are different.")
