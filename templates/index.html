@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AI Conversation Analyzer</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: #f7f7f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #222;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 650px;
+            animation: fadeIn 0.8s ease-in-out;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 18px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            resize: none;
+            font-family: inherit;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #888;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            background: #222;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: #444;
+            transform: scale(1.02);
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #eee;
+            font-weight: 400;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .value {
+            font-weight: 600;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>AI Conversation Analyzer</h1>
+
+    <div class="card">
+        <form method="POST">
+            <textarea name="statement" rows="3" placeholder="Enter statement..." required></textarea>
+            <textarea name="reply" rows="3" placeholder="Enter reply..." required></textarea>
+            <button type="submit">Analyze</button>
+        </form>
+    </div>
+
+    {% if results %}
+    <div class="card">
+
+        <div class="result-item">
+            <span>Agreement Detection</span>
+            <span class="value">{{ results.agreement }}%</span>
+        </div>
+
+        <div class="result-item">
+            <span>Toxicity Detection</span>
+            <span class="value">{{ results.toxicity }}%</span>
+        </div>
+
+        <div class="result-item">
+            <span>Emotional Intensity</span>
+            <span class="value">{{ results.emotion }}%</span>
+        </div>
+
+        <div class="result-item">
+            <span>Emotional Escalation Risk</span>
+            <span class="value">{{ results.escalation }}%</span>
+        </div>
+
+        <div class="result-item">
+            <span>Polarization Index</span>
+            <span class="value">{{ results.polarization }}%</span>
+        </div>
+
+    </div>
+    {% endif %}
+
+</div>
+
+</body>
+</html>
