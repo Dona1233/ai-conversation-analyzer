@@ -2,5 +2,5 @@ flask
 gunicorn
 sentence-transformers
 nltk
-torch
 scikit-learn
+torch --index-url https://download.pytorch.org/whl/cpu
