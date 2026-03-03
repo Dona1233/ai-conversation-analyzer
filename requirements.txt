@@ -1,4 +1,5 @@
-streamlit
+flask
+gunicorn
 sentence-transformers
 nltk
 torch

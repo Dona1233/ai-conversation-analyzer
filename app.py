@@ -1,61 +1,76 @@
-import streamlit as st
+from flask import Flask, render_template, request
 from sentence_transformers import SentenceTransformer, util
 from nltk.sentiment import SentimentIntensityAnalyzer
 import nltk
+import torch
 
-# Download necessary data for NLTK
-@st.cache_resource
-def download_nltk():
-    nltk.download('vader_lexicon')
+nltk.download('vader_lexicon')
 
-download_nltk()
-
-st.set_page_config(page_title="AgreeDetector", page_icon="🤝")
-st.title("🤝 AI Conversation Analyzer")
+app = Flask(__name__)
 
 # Load models
-@st.cache_resource
-def load_models():
-    model = SentenceTransformer('all-MiniLM-L6-v2')
-    sia = SentimentIntensityAnalyzer()
-    return model, sia
+model = SentenceTransformer('all-MiniLM-L6-v2')
+sia = SentimentIntensityAnalyzer()
 
-model, sia = load_models()
-
-# Logic functions
-toxic_words = ["stupid", "idiot", "dumb", "hate", "shut up", "nonsense", "useless", "worst"]
+# Simple toxicity keywords
+toxic_words = [
+    "stupid", "idiot", "dumb", "hate", "shut up",
+    "nonsense", "useless", "worst"
+]
 
 def calculate_toxicity(text):
-    score = sum(1 for word in toxic_words if word in text.lower())
+    score = 0
+    for word in toxic_words:
+        if word in text.lower():
+            score += 1
     return min(score * 15, 100)
 
-# User Interface
-statement = st.text_area("Original Statement", "I think we should focus on the new project.")
-reply = st.text_area("The Reply", "I hate that idea, it's totally useless.")
+def emotional_intensity(text):
+    sentiment = sia.polarity_scores(text)
+    return abs(sentiment['compound']) * 100
 
-if st.button("Analyze Conversation"):
-    with st.spinner('Analyzing patterns...'):
+@app.route("/", methods=["GET", "POST"])
+def index():
+    results = None
+
+    if request.method == "POST":
+        statement = request.form["statement"]
+        reply = request.form["reply"]
+
         # Agreement Score
         emb1 = model.encode(statement, convert_to_tensor=True)
         emb2 = model.encode(reply, convert_to_tensor=True)
         similarity = util.cos_sim(emb1, emb2).item()
         agreement_score = round((similarity + 1) / 2 * 100, 2)
-        
-        # Sentiment & Emotion
+
+        disagreement_score = round(100 - agreement_score, 2)
+
+        # Sentiment
         statement_sent = sia.polarity_scores(statement)['compound']
         reply_sent = sia.polarity_scores(reply)['compound']
-        emotion_score = round(abs(reply_sent) * 100, 2)
+
+        # Emotional Intensity
+        emotion_score = round(emotional_intensity(reply), 2)
+
+        # Toxicity
         toxicity_score = calculate_toxicity(reply)
+
+        # Emotional Escalation Risk
         escalation_risk = round(abs(statement_sent - reply_sent) * 100, 2)
 
-        # Display Results in Columns
-        st.divider()
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Agreement", f"{agreement_score}%")
-        col2.metric("Toxicity", f"{toxicity_score}%")
-        col3.metric("Escalation Risk", f"{escalation_risk}%")
+        # Polarization Index
+        polarization_index = round((agreement_score * escalation_risk) / 100, 2)
 
-        if toxicity_score > 30:
-            st.error("⚠️ High toxicity detected in the reply.")
-        elif agreement_score > 70:
-            st.success("✅ The conversation appears constructive.")
+        results = {
+            "agreement": agreement_score,
+            "disagreement": disagreement_score,
+            "emotion": emotion_score,
+            "toxicity": toxicity_score,
+            "escalation": escalation_risk,
+            "polarization": polarization_index
+        }
+
+    return render_template("index.html", results=results)
+
+if __name__ == "__main__":
+    app.run(debug=True)
