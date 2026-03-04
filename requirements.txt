@@ -1,7 +1,4 @@
 flask
 gunicorn
-sentence-transformers
 nltk
 scikit-learn
---extra-index-url https://download.pytorch.org/whl/cpu
-torch

@@ -1,16 +1,15 @@
 from flask import Flask, render_template, request
-from sentence_transformers import SentenceTransformer, util
 from nltk.sentiment import SentimentIntensityAnalyzer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 import nltk
-import torch
-import os 
+import os
 
 nltk.download('vader_lexicon')
 
 app = Flask(__name__)
 
 # Load models
-model = SentenceTransformer('all-MiniLM-L6-v2')
 sia = SentimentIntensityAnalyzer()
 
 # Simple toxicity keywords
@@ -39,11 +38,10 @@ def index():
         reply = request.form["reply"]
 
         # Agreement Score
-        emb1 = model.encode(statement, convert_to_tensor=True)
-        emb2 = model.encode(reply, convert_to_tensor=True)
-        similarity = util.cos_sim(emb1, emb2).item()
-        agreement_score = round((similarity + 1) / 2 * 100, 2)
-
+        vectorizer = TfidfVectorizer()
+        tfidf = vectorizer.fit_transform([statement, reply])
+        similarity = cosine_similarity(tfidf[0], tfidf[1])[0][0]
+        agreement_score = round(similarity * 100, 2)
         disagreement_score = round(100 - agreement_score, 2)
 
         # Sentiment
