@@ -3,6 +3,7 @@ from sentence_transformers import SentenceTransformer, util
 from nltk.sentiment import SentimentIntensityAnalyzer
 import nltk
 import torch
+import os 
 
 nltk.download('vader_lexicon')
 
@@ -72,5 +73,7 @@ def index():
 
     return render_template("index.html", results=results)
 
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
